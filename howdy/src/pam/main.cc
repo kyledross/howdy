@@ -154,7 +154,10 @@ auto check_enabled(const INIReader &config, const char *username) -> int {
     int return_value =
         glob("/proc/acpi/button/lid/*/state", 0, nullptr, &glob_result);
 
-    if (return_value != 0) {
+    if (return_value == GLOB_NOMATCH) {
+      // No lid files found (desktop machine), skip lid checking
+      syslog(LOG_DEBUG, "No lid state files found, skipping lid check");
+    } else if (return_value != 0) {
       syslog(LOG_ERR, "Failed to read files from glob: %d", return_value);
       if (errno != 0) {
         syslog(LOG_ERR, "Underlying error: %s (%d)", strerror(errno), errno);
